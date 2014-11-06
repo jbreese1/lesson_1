@@ -1,16 +1,19 @@
-play = "y"
+play = "Y"
+puts "Let's Play Rock Paper Scissors!"
 
-puts "Play Rock Paper Scissors!"
+CHOICES = {"p" => "paper", "r" => "rock", "s" => "scissors"}
 
-while play == "y"
-  puts "Choose one: (p/r/s)"
+while play == "Y"
+  #player makes a pick
+  player = ""
+  until CHOICES.keys.include?(player)
+    puts "Choose one (r/p/s)..."
+    player = gets.chomp.downcase
+  end 
+  #computer makes a pick
+  computer = CHOICES.keys.sample
 
-  player = gets.chomp
-
-  choices = ["p", "r", "s"]
-
-  computer = choices.sample
-
+  #compare the choices
   if player == computer
     puts "You both chose #{player}. It's a tie"
   elsif player == "p"
@@ -35,5 +38,5 @@ while play == "y"
     
   puts "Want to play again? (y/n)"
 
-  play = gets.chomp
+  play = gets.chomp.upcase
 end
