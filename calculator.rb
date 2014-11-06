@@ -9,7 +9,7 @@
 #   type binding.pry   to continue, hit cntrl - d
 
 def say(msg)
-  puts "=> #{msg}" #this is where you can manipulate what puts reads like
+  puts "Yo, #{msg}" #this is where you can manipulate what puts reads like
 end
 
 say "what is the first number?"
@@ -18,19 +18,27 @@ num1 = gets.chomp #don't add .to_i or .to_f.  you want to keep data integrity/ra
 say "what is the second number?"
 num2 = gets.chomp
 
-say "1) add 2) subtract 3) multiply 4) divide"
+say "choose a number to tell me what to do\n 1) add 2) subtract 3) multiply 4) divide"
 operator = gets.chomp
 
 if operator == '1'
   result = num1.to_i + num2.to_i
+  operation = "added"
 elsif operator == '2'
   result = num1.to_i - num2.to_i
+  opertation = "subtracted"
 elsif operator == '3'
   result = num1.to_i * num2.to_i
+  operation = "multiplied"
 elsif operator == '4'
   result = num1.to_f / num2.to_f #floats because we want decimals
+  operation = "divided"
 else
-  say result = "cannot perform that operation"
+  say result = "can't"
 end
 
-say "Result is #{result}"
+if result == "can't"
+  say "I can't do that you idiot."
+else
+  say "this is what I got for you. I #{operation} #{num1} and #{num2} and it gave me #{result}."
+end
