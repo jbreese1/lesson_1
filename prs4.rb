@@ -30,7 +30,7 @@ begin
   puts "Want to play again? (y/n)"
   play = gets.chomp.upcase
 
-  while play != "Y" || play != "N" do
+  while play != "Y" && play != "N" do
     puts "Just tell me Y or N."
     play = gets.chomp.upcase
   end 
