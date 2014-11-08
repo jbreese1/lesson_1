@@ -4,19 +4,27 @@ def say(msg)
   puts "Yo, #{msg}" #this is where you can manipulate what puts reads like
 end
 
+def is_num_float(number)
+  !(number !~ /^\s*[+-]?((\d+_?)*\d+(\.(\d+_?)*\d+)?|\.(\d+_?)*\d+)(\s*|([eE][+-]?(\d+_?)*\d+)\s*)$/)
+end
+
 OPERATION = {'1' => "added", '2' => "subtracted", '3' => "multiplied", '4' => "divided"}
 
 power = "Y" #turns on calc
 
 while power == "Y"
-  #take user inputs
-  say "what is the first number?"
-  num1 = gets.chomp  #don't add .to_i or .to_f.  you want to keep data integrity/raw
+  
+  begin
+    say "what is the first number?"
+    num1 = gets.chomp  
+  end until is_num_float(num1)
 
-  say "what is the second number?"
-  num2 = gets.chomp
+  begin
+    say "what is the second number?"
+    num2 = gets.chomp  
+  end until is_num_float(num2)
 
-  #take an operation from the user
+  
   operator = ""
   until OPERATION.keys.include?(operator)
     say "choose a number to tell me what to do\n 1) add 2) subtract 3) multiply 4) divide"

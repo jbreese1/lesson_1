@@ -1,4 +1,5 @@
-require 'pry'
+#need to update brute force check if win
+#need to make computer smarter with to_in_a_row
 
 def initialize_board
   b = {}
@@ -41,15 +42,11 @@ def empty_spaces(b)
   b.select { |k,v| v == ' '}.keys
 end
 
-def taken_spaces(b)
-  b.select { |k,v| v != ' '}.keys
-end
-
 def player_picks_square(b)
   begin
     puts "Pick a square (1-9):"
     position = gets.chomp
-  end until empty_spaces(b).include?(position) 
+  end until empty_spaces(b).include?(position.to_i) 
   b[position.to_i] = "X"  
 end
 
@@ -65,28 +62,30 @@ def check_winner(b)
       return 'Player'
     elsif b[line[0]] == "O" && b[line[1]] == "O" && b[line[2]] == "O"
       return 'Computer'
-    else
-      return nil
-    end
+    end  
   end
+  nil
 end
 
-#setting the board up
-board = initialize_board
-draw_numbered_board("")
-draw_board(board)
-
-#gameplay 
 begin
-  player_picks_square(board)
-  comp_picks_square(board)
+  board = initialize_board
+  draw_numbered_board("")
   draw_board(board)
-  winner = check_winner(board)
-end while winner  == false || empty_spaces(board).empty? == false
 
-if winner
-  puts "#{winner} won!"
-else
-  puts "It's a tie"
-end
+  begin
+    player_picks_square(board)
+    comp_picks_square(board)
+    draw_board(board)
+    winner = check_winner(board)
+  end until winner || empty_spaces(board).empty?
 
+  if winner
+    puts "#{winner} won!"
+  else
+    puts "Cats game!"
+  end
+
+  puts "Want to play again? (y/n)"
+  power = gets.chomp.upcase
+  system 'clear'
+end while power == "Y"
