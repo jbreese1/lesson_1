@@ -19,4 +19,6 @@ board = initialize_board
 board[1] = "X"
 board[2] = "X"
 
-puts two_in_a_row(board, "X")
+puts two_in_a_row(board, "X").class
+
+puts two_in_a_row(board, "X").integer?

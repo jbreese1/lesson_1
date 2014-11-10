@@ -59,9 +59,10 @@ def two_in_a_row(board, marker)
 end
 
 def comp_picks_square(board)
-  if two_in_a_row(board, "X") > 0
+  case
+  when two_in_a_row(board, "X").integer?
     position = two_in_a_row(board, "X")
-  elsif two_in_a_row(board,"O") > 0
+  when two_in_a_row(board,"O").integer?
     position = two_in_a_row(board, "O")
   else  
     position = empty_spaces(board).sample
