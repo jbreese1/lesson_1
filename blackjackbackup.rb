@@ -29,14 +29,12 @@ def create_multiple_decks(number_of_decks, full_deck)
   all_decks
 end
 
-def deal_a_card(universe, number_of_decks, total_array, cards_in_hand)
+def deal_a_card(universe, number_of_decks)
   deck_number = deck_array(number_of_decks).sample
   card_suit = SUITS.sample
   card_number = universe[deck_number][card_suit].keys.sample
   card_value = CARD_VALUES[card_number]
   remove_card_from_universe(universe, deck_number, card_suit, card_number)
-  add_card_to_total(total_array, card_value)
-  cards_in_hand.push({:deck_number => deck_number, :suit => card_suit, :card_number => card_number, :value => card_value})
   return {:deck_number => deck_number, :suit => card_suit, :card_number => card_number, :value => card_value}
 end
 
@@ -117,9 +115,11 @@ def player_hit_or_stay(universe, num_of_decks, all_player_cards, player_card_tot
     system 'clear'
     if player_move == "H"
       say "You chose to hit."
-      deal_a_card(universe, num_of_decks, player_card_total, all_player_cards)
+      all_player_cards.push(deal_a_card(universe, num_of_decks))
       display_cards(all_player_cards, player_card_total, dealer_cards, dealer_card_total, bet)
-      sleep(1)
+      sleep(2)
+      say "What would you like to do?"
+      player_move = gets.chomp.upcase
     end
   end until player_move == "S"
 end
@@ -128,12 +128,12 @@ def dealer_hit_or_stay
 end
 
 def check_natural_blackjack(player_cards, dealer_cards)
-  if player_cards.include?(21)
+  if player_cards.include?([21])
     pn21 = true
   else
     pn21 = false
   end
-  if dealer_cards.include?(21)
+  if dealer_cards.include?([21])
     dn21 = true
   else
     dn21 = false
@@ -151,24 +151,50 @@ def check_natural_blackjack(player_cards, dealer_cards)
 end
 
 def add_card_to_total(card_total_array, additional_card)
-  if additional_card.kind_of?(Integer)
-    card_total_array.map! { |value| value + additional_card }
-  elsif additional_card.kind_of?(Array)
-    total_1 = card_total_array.flatten.map { |value| value + additional_card[0]}
-    total_2 = card_total_array.flatten.map { |value| value + additional_card[1]}
-    card_total_array = total_1 + total_2
+  if additional_card.count == 1
+    final_total = card_total_array.map! { |value| value + additional_card[0]}
+  else
+    total_1 = card_total_array.flatten.map! { |value| value + additional_card[0]}
+    total_2 = card_total_array.flatten.map! { |value| value + additional_card[1]}
+    final_total = total_1 + total_2
+    final_total
   end
+  return final_total.uniq
 end
 
 
-def opening_cards(universe, number_of_decks, p_total, p_hand, d_total, d_hand)
-  player_first_card = deal_a_card(universe,number_of_decks, p_total, p_hand)
-  dealer_first_card = deal_a_card(universe,number_of_decks, d_total, d_hand)
-  player_second_card = deal_a_card(universe,number_of_decks, p_total, p_hand)
-  dealer_second_card = deal_a_card(universe,number_of_decks, d_total, d_hand)
+def opening_cards(universe, number_of_decks)
+  player_first_card = deal_a_card(universe,number_of_decks)
+  dealer_first_card = deal_a_card(universe,number_of_decks)
+  player_second_card = deal_a_card(universe,number_of_decks)
+  dealer_second_card = deal_a_card(universe,number_of_decks)
+  return player_first_card, dealer_first_card, player_second_card, dealer_second_card
 end
 
-
+def opening_cards_total(first_card_value, second_card_value)
+  if first_card_value.kind_of?(Array) && second_card_value.kind_of?(Integer)
+    total_1 = [first_card_value[0] + second_card_value]
+    total_2 = [first_card_value[1] + second_card_value]
+    total_3 = total_1
+    total_4 = total_2
+  elsif first_card_value.kind_of?(Integer) && second_card_value.kind_of?(Array)
+    total_1 = [second_card_value[0] + first_card_value]
+    total_2 = [second_card_value[1] + first_card_value]
+    total_3 = [second_card_value[0] + second_card_value[0]]
+    total_4 = total_2
+  elsif first_card_value.kind_of?(Array) && second_card_value.kind_of?(Array)
+    total_1 = [first_card_value[0] + second_card_value[0]]
+    total_2 = [first_card_value[1] + second_card_value[0]]
+    total_3 = [first_card_value[0] + second_card_value[1]]
+    total_4 = [first_card_value[1] + second_card_value[1]]
+  else
+    total_1 = [first_card_value + second_card_value]
+    total_2 = total_1
+    total_3 = total_1
+    total_4 = total_1
+  end    
+  return [total_1, total_2, total_3, total_4]  
+end
 
 def payout(player_bet, wallet, scenario)
   case scenario
@@ -223,16 +249,16 @@ say "Please wait while we shuffle the cards."
 sleep(2.5)
 
 begin
-  player_total_array = [0]
-  all_cards_for_player = []
-  dealer_total_array = [0]
-  all_cards_for_dealer = []
-
   system 'clear'
   puts "This is hand number #{game_count}.  We reshuffle all the decks after #{GAMESBEFORESHUFFLE} hands."
   player_bet = get_player_bet(ongoing_wallet)
 
-  opening_cards(deck_universe, number_decks_input, player_total_array, all_cards_for_player, dealer_total_array, all_cards_for_dealer)
+  player_first_card, dealer_first_card, player_second_card, dealer_second_card = opening_cards(deck_universe, number_decks_input)
+  all_cards_for_player = [player_first_card, player_second_card]
+  all_cards_for_dealer = [dealer_first_card, dealer_second_card]
+
+  player_total_array = opening_cards_total(player_first_card[:value], player_second_card[:value])
+  dealer_total_array = opening_cards_total(dealer_first_card[:value], dealer_second_card[:value])
 
   display_cards(all_cards_for_player, player_total_array, all_cards_for_dealer, dealer_total_array, player_bet)
 
