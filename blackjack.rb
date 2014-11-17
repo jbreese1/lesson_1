@@ -1,7 +1,7 @@
 require 'pry'
 
 SUITS = ["Hearts", "Spades", "Clubs", "Diamonds"]
-CARD_VALUES = {"Ace" => [1, 11], "2" => 2, "3" => 3, "4" => 4, "5" => 5, "6" => 6, "7" => 7, "8" => 8, "9" => 9, "10" => 10, "Jack" => 10, "Queen" => 10, "King" => 10}
+CARD_VALUES = {"Ace" => [1, 11], "2" => [2], "3" => [3], "4" => [4], "5" => [5], "6" => [6], "7" => [7], "8" => [8], "9" => [9], "10" => [10], "Jack" => [10], "Queen" => [10], "King" => [10]}
 
 START_WALLET = 10000
 MINIMUM_BET = 100
@@ -151,12 +151,13 @@ def check_natural_blackjack(player_cards, dealer_cards)
 end
 
 def add_card_to_total(card_total_array, additional_card)
-  if additional_card.kind_of?(Integer)
-    card_total_array.map! { |value| value + additional_card }
-  elsif additional_card.kind_of?(Array)
-    total_1 = card_total_array.flatten.map { |value| value + additional_card[0]}
-    total_2 = card_total_array.flatten.map { |value| value + additional_card[1]}
-    card_total_array = total_1 + total_2
+  if additional_card.count == 1
+    card_total_array.map! { |value| value + additional_card[0]}
+  else
+   total_1 = card_total_array.flatten.map { |value| value + 1 }
+   total_2 = card_total_array.flatten.map { |value| value + 11 }
+   card_total_array[0] = total_1.flatten.first
+   card_total_array[1] = total_2.flatten.first
   end
 end
 
