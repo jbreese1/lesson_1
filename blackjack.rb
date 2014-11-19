@@ -40,21 +40,30 @@ def deal_a_card(universe, number_of_decks, total_array, cards_in_hand)
   return {:deck_number => deck_number, :suit => card_suit, :card_number => card_number, :value => card_value}
 end
 
+def remove_bet_from_wallet(player_bet, wallet) 
+  wallet -= player_bet
+end
 
 
 def get_player_bet(wallet)
   begin
-  say "The minimum bet is #{MINIMUM_BET}."
+  say "You have $#{wallet} in your bank."
+  say "The minimum bet is #{MINIMUM_BET} and max bet is #{MINIMUM_BET * 10}."
   say "How much would you like to wager?"
   player_bet_input = gets.chomp
   if player_bet_input.to_i.to_s != player_bet_input 
-    puts "Enter a number of #{MINIMUM_BET} or higher. \n So how much do you want to wager?"
+    say "Enter a number between #{MINIMUM_BET} and #{MINIMUM_BET * 10}."
+    say "So how much do you want to wager?"
     player_bet_input = gets.chomp
   elsif player_bet_input.to_i.to_s == player_bet_input && player_bet_input.to_i < MINIMUM_BET
-    puts "You need to bet at least #{MINIMUM_BET}. \n So how much do you want to wager?"
+    say "You need to bet at least #{MINIMUM_BET}."
+    say "So how much do you want to wager?"
+    player_bet_input = gets.chomp
+  elsif player_bet_input.to_i.to_s == player_bet_input && player_bet_input.to_i > MINIMUM_BET && player_bet_input.to_i > MINIMUM_BET * 10
+    say "Your bet needs to be between #{MINIMUM_BET} and #{MINIMUM_BET * 10}. \n So how much do you want to wager?"
     player_bet_input = gets.chomp
   end
-  end until player_bet_input.to_i.to_s == player_bet_input && player_bet_input.to_i >= MINIMUM_BET
+  end until player_bet_input.to_i.to_s == player_bet_input && player_bet_input.to_i >= MINIMUM_BET && player_bet_input.to_i <= MINIMUM_BET * 10
   wallet -= player_bet_input.to_i
   return player_bet_input.to_i
 end
@@ -119,12 +128,50 @@ def player_hit_or_stay(universe, num_of_decks, all_player_cards, player_card_tot
       say "You chose to hit."
       deal_a_card(universe, num_of_decks, player_card_total, all_player_cards)
       display_cards(all_player_cards, player_card_total, dealer_cards, dealer_card_total, bet)
-      sleep(1)
     end
   end until player_move == "S"
 end
 
-def dealer_hit_or_stay
+def dealer_hit_or_stay(universe, num_of_decks, all_player_cards, player_card_total, dealer_cards, dealer_card_total, bet)
+  begin
+    if dealer_card_total.sort.last < 17
+      say "Dealer chose to hit."
+      deal_a_card(universe, num_of_decks, dealer_card_total, dealer_cards)
+      display_cards(all_player_cards, player_card_total, dealer_cards, dealer_card_total, bet)
+    elsif chance_of_getting_good_card(universe, dealer_card_total) > 0.40
+      say "Dealer chose to hit."
+      deal_a_card(universe, num_of_decks, dealer_card_total, dealer_cards)
+      display_cards(all_player_cards, player_card_total, dealer_cards, dealer_card_total, bet)
+    else
+      break
+    end
+  end until dealer_card_total.sort.last > player_card_total.sort.last || dealer_card_total.sort.last >= 21
+end
+
+def chance_of_getting_good_card(deck_universe, card_total)
+  good_card_count = []
+  deck_universe.each do |key, value| 
+    value.each do |key, value| 
+      value.map do |key, value| 
+        if value[0] <= (21 - card_total.sort.last)
+          good_card_count.push(1)
+        end
+      end
+    end
+  end
+  good_cards = good_card_count.flatten.count.to_f
+  total_card_count = []
+  deck_universe.each do |key, value| 
+    value.each do |key, value| 
+      value.map do |key, value| 
+        if value[0] > 0 
+          total_card_count.push(1)
+        end
+      end
+    end
+  end
+  total_cards = total_card_count.flatten.count.to_f
+  return chance = good_cards / total_cards
 end
 
 def check_natural_blackjack(player_cards, dealer_cards)
@@ -152,12 +199,20 @@ end
 
 def add_card_to_total(card_total_array, additional_card)
   if additional_card.count == 1
-    card_total_array.map! { |value| value + additional_card[0]}
+    card_total_array.map! do |value|
+      if value + additional_card[0] <= 21
+        value + additional_card[0]
+      else
+
+      end
+    end 
   else
    total_1 = card_total_array.flatten.map { |value| value + 1 }
    total_2 = card_total_array.flatten.map { |value| value + 11 }
-   card_total_array[0] = total_1.flatten.first
-   card_total_array[1] = total_2.flatten.first
+   total_1_trim = total_1.map! { |x| x if x <= 21 }
+   total_2_trim = total_2.map! { |x| x if x <= 21 }
+   card_total_array[0] = total_1_trim.flatten.first
+   card_total_array[1] = total_2_trim.flatten.first
   end
 end
 
@@ -172,7 +227,7 @@ end
 
 
 def payout(player_bet, wallet, scenario)
-  case scenario
+  case
     when scenario == "Push"
       say "You and the dealer both had natural Blackjack."
       say "It's a push.  You keep your bet of $#{player_bet}."
@@ -193,8 +248,8 @@ def payout(player_bet, wallet, scenario)
 end
 
 def check_game_winner(player_total, dealer_total)
-  p_total = 10
-  d_total = 9
+  p_total = player_total.sort.last
+  d_total = dealer_total.sort.last
   if p_total > d_total
     return "Player Wins"
   else
@@ -222,7 +277,7 @@ say "Thanks.  We will play with #{number_decks_input} decks."
 say "We are going to start you off with $#{START_WALLET}."
 say "Please wait while we shuffle the cards."
 sleep(2.5)
-
+binding.pry
 begin
   player_total_array = [0]
   all_cards_for_player = []
@@ -230,16 +285,17 @@ begin
   all_cards_for_dealer = []
 
   system 'clear'
-  puts "This is hand number #{game_count}.  We reshuffle all the decks after #{GAMESBEFORESHUFFLE} hands."
+  say "This is hand number #{game_count}.  We reshuffle all the decks after #{GAMESBEFORESHUFFLE} hands."
   player_bet = get_player_bet(ongoing_wallet)
 
   opening_cards(deck_universe, number_decks_input, player_total_array, all_cards_for_player, dealer_total_array, all_cards_for_dealer)
-
+binding.pry
   display_cards(all_cards_for_player, player_total_array, all_cards_for_dealer, dealer_total_array, player_bet)
 
   # use case statement here
 
   game_result = check_natural_blackjack(player_total_array, dealer_total_array) 
+
   case game_result
   when "Continue"
     player_hit_or_stay(deck_universe, number_decks_input, all_cards_for_player, player_total_array, all_cards_for_dealer, dealer_total_array, player_bet)
@@ -247,8 +303,9 @@ begin
     payout(player_bet, ongoing_wallet, game_result)
   end
 
-  dealer_hit_or_stay
-  game_result = check_game_winner(all_cards_for_player, all_cards_for_dealer)
+  dealer_hit_or_stay(deck_universe, number_decks_input, all_cards_for_player, player_total_array, all_cards_for_dealer, dealer_total_array, player_bet)
+  binding.pry
+  game_result = check_game_winner(player_total_array, dealer_total_array)
 
   payout(player_bet, ongoing_wallet, game_result)
   binding.pry
